@@ -1,0 +1,181 @@
+Let's now implement the first real data integration for Signal: NEWS.
+
+Do NOT touch the existing visual design unless necessary. The current UI is intentionally minimal and editorial, and I want to preserve it.
+
+For now, focus only on the News system. Do not implement YouTube OAuth yet.
+
+GOAL:
+
+Replace the fictional news data with real articles pulled from RSS feeds.
+
+ARCHITECTURE:
+
+Create a small backend/API layer that:
+
+1. Fetches RSS feeds from configured news sources.
+2. Parses the RSS/XML.
+3. Normalizes every article into a consistent internal format.
+4. Exposes the normalized articles to the React frontend through our own API endpoint.
+5. Keeps the frontend independent from the individual RSS feed formats.
+
+Use a clean separation:
+
+/server
+  /feeds
+  /services
+  /routes
+  /utils
+
+Keep the existing React frontend separate.
+
+ARTICLE MODEL:
+
+Create a normalized article type similar to:
+
+{
+  id: string,
+  title: string,
+  description: string,
+  url: string,
+  source: string,
+  sourceUrl: string,
+  publishedAt: string,
+  category: "international" | "india" | "united-states" | "technology",
+  imageUrl?: string,
+  perspective?: "left" | "center" | "right" | "unknown"
+}
+
+IMPORTANT:
+
+Do not invent perspective classifications for real sources yet.
+
+Set perspective to "unknown" for now unless we explicitly configure a source ourselves.
+
+FEEDS:
+
+Create a central configuration file where RSS sources can easily be added later.
+
+For example:
+
+sources = [
+  {
+    name: "...",
+    url: "...",
+    category: "international"
+  }
+]
+
+Start with a small number of reliable RSS sources rather than dozens.
+
+Use several categories:
+- International
+- India
+- United States
+- Technology
+
+Do not hardcode articles into the frontend.
+
+BACKEND ENDPOINTS:
+
+Create:
+
+GET /api/news
+
+Optional query parameters:
+
+?category=international
+?category=india
+?category=united-states
+?category=technology
+
+Return normalized JSON.
+
+Also support:
+
+GET /api/news/:id
+
+for retrieving a single article.
+
+FRONTEND:
+
+Connect the existing News page to /api/news.
+
+The existing category tabs should filter the real data.
+
+The existing story cards should now display:
+- Real headline
+- Real source
+- Published time
+- Category
+- Description
+- Save button
+- Coverage indicator
+
+For now, the coverage indicator should only appear if coverage data exists.
+
+Do NOT pretend that one RSS source represents a complete story.
+
+IMPORTANT DATA BEHAVIOR:
+
+RSS feeds will contain multiple articles about the same event.
+
+Do not attempt sophisticated AI story clustering yet.
+
+However, implement a basic duplicate detector using:
+- normalized title
+- source
+- URL
+
+so the exact same article isn't displayed twice.
+
+ERROR HANDLING:
+
+If one RSS feed fails:
+- Do not crash the entire application.
+- Continue loading articles from the other feeds.
+- Log the failed source on the server.
+- Show a subtle frontend indication if useful.
+
+LOADING STATE:
+
+Create a clean loading state consistent with the existing Signal design.
+
+Do not use generic spinning loaders everywhere.
+
+Use subtle skeleton rows/cards if appropriate.
+
+EMPTY STATE:
+
+If a category has no articles, show a thoughtful empty state rather than a blank screen.
+
+SECURITY:
+
+Keep RSS fetching on the backend.
+
+Do not fetch RSS feeds directly from the browser because of CORS issues.
+
+Keep the feed configuration on the server.
+
+Do not expose API keys or secrets to the frontend.
+
+DEVELOPER EXPERIENCE:
+
+Add clear comments explaining:
+- how an RSS source is added
+- how articles are normalized
+- how the API works
+
+Create an environment configuration structure even though RSS feeds don't require secrets yet.
+
+Make sure the app runs successfully.
+
+Do NOT:
+- add authentication
+- add a database
+- add AI
+- add YouTube
+- redesign the UI
+- add unnecessary dependencies
+- build a complex CMS
+
+The goal is to get the first real news articles flowing through Signal cleanly.

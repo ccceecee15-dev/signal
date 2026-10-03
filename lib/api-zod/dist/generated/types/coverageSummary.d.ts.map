@@ -1,0 +1,1 @@
+{"version":3,"file":"coverageSummary.d.ts","sourceRoot":"","sources":["../../../src/generated/types/coverageSummary.ts"],"names":[],"mappings":"AAAA;;;;;;GAMG;AACH,OAAO,KAAK,EAAE,eAAe,EAAE,MAAM,mBAAmB,CAAC;AAEzD,MAAM,WAAW,eAAe;IAC9B,iBAAiB;IACjB,KAAK,EAAE,MAAM,CAAC;IACd,QAAQ,EAAE,eAAe,EAAE,CAAC;CAC7B"}

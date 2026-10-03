@@ -1,0 +1,186 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: news
+    description: RSS-backed news operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /news:
+    get:
+      operationId: getNews
+      tags: [news]
+      summary: List normalized news articles
+      description: Fetches configured RSS feeds and returns available normalized articles.
+      parameters:
+        - name: category
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/NewsCategory"
+      responses:
+        "200":
+          description: Articles from feeds that responded successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NewsListResponse"
+        "400":
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /news/{id}:
+    get:
+      operationId: getNewsById
+      tags: [news]
+      summary: Get a normalized news article
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The requested article
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NewsArticle"
+        "404":
+          description: Article not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    NewsCategory:
+      type: string
+      enum:
+        - international
+        - india
+        - united-states
+        - technology
+    NewsPerspective:
+      type: string
+      enum:
+        - left
+        - center
+        - right
+        - unknown
+    CoverageSegment:
+      type: object
+      properties:
+        perspective:
+          type: string
+          enum: [left, center, right]
+        count:
+          type: integer
+          minimum: 0
+        percentage:
+          type: number
+          minimum: 0
+          maximum: 100
+        width:
+          type: number
+          minimum: 0
+          maximum: 100
+      required: [perspective, count, percentage, width]
+    CoverageSummary:
+      type: object
+      properties:
+        total:
+          type: integer
+          minimum: 0
+        segments:
+          type: array
+          items:
+            $ref: "#/components/schemas/CoverageSegment"
+      required: [total, segments]
+    NewsArticle:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        url:
+          type: string
+          format: uri
+        source:
+          type: string
+        sourceUrl:
+          type: string
+          format: uri
+        publishedAt:
+          type: [string, "null"]
+          format: date-time
+        category:
+          $ref: "#/components/schemas/NewsCategory"
+        imageUrl:
+          type: string
+          format: uri
+        perspective:
+          $ref: "#/components/schemas/NewsPerspective"
+        coverage:
+          $ref: "#/components/schemas/CoverageSummary"
+      required:
+        - id
+        - title
+        - description
+        - url
+        - source
+        - sourceUrl
+        - publishedAt
+        - category
+        - perspective
+    NewsListResponse:
+      type: object
+      properties:
+        articles:
+          type: array
+          items:
+            $ref: "#/components/schemas/NewsArticle"
+        failedSourceCount:
+          type: integer
+          minimum: 0
+      required: [articles, failedSourceCount]
+    ApiError:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+

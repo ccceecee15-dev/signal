@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Signal"
+description = "A personal news and video dashboard that helps people choose what deserves their attention, with editorial story summaries, source comparisons, and followed channels. This starter is frontend-only and uses mock data."
+version = "1.0.0"
+id = "artifacts/signal"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18239
+
+[services.development]
+run = "pnpm --filter @workspace/signal run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/signal", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/signal/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18239"
+BASE_PATH = "/"
