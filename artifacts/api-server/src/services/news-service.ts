@@ -1,5 +1,6 @@
 import type { NewsArticle } from "@workspace/api-zod";
 import { config } from "../lib/config";
+import { logger } from "../lib/logger";
 import { NEWS_FEEDS, type NewsFeed } from "../feeds/news-sources";
 import { normalizeFeedXml } from "../utils/rss-normalizer";
 
@@ -23,6 +24,10 @@ let cachedNews: CachedNews | undefined;
 let pendingRefresh: Promise<NewsFeedData> | undefined;
 
 async function readFeed(feed: NewsFeed): Promise<NewsArticle[]> {
+  logger.info(
+    { source: feed.name, feedId: feed.id, url: feed.url },
+    `[RSS] Fetching: ${feed.name}`,
+  );
   const response = await fetch(feed.url, {
     headers: {
       accept: "application/rss+xml, application/atom+xml, application/xml, text/xml",
@@ -31,12 +36,34 @@ async function readFeed(feed: NewsFeed): Promise<NewsArticle[]> {
     signal: AbortSignal.timeout(config.news.feedTimeoutMs),
   });
 
+  logger.info(
+    {
+      source: feed.name,
+      feedId: feed.id,
+      status: response.status,
+      url: response.url,
+      redirected: response.redirected,
+    },
+    `[RSS] Response: ${feed.name} ${response.status}`,
+  );
+
   if (!response.ok) {
     throw new Error(`Feed returned HTTP ${response.status}.`);
   }
 
   const xml = await response.text();
-  return normalizeFeedXml(xml, feed).slice(0, config.news.maxItemsPerFeed);
+  const parsedArticles = normalizeFeedXml(xml, feed);
+  const articles = parsedArticles.slice(0, config.news.maxItemsPerFeed);
+  logger.info(
+    {
+      source: feed.name,
+      feedId: feed.id,
+      parsedCount: parsedArticles.length,
+      retainedCount: articles.length,
+    },
+    `[RSS] Parsed: ${feed.name} ${parsedArticles.length} articles`,
+  );
+  return articles;
 }
 
 async function refreshFeeds(): Promise<NewsFeedData> {
@@ -45,14 +72,19 @@ async function refreshFeeds(): Promise<NewsFeedData> {
       try {
         return { feed, articles: await readFeed(feed) };
       } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Unknown feed error.";
+        logger.error(
+          { source: feed.name, feedId: feed.id, err: error },
+          `[RSS ERROR] ${feed.name}: ${message}`,
+        );
         return {
           feed,
           articles: [],
           failure: {
             feedId: feed.id,
             source: feed.name,
-            message:
-              error instanceof Error ? error.message : "Unknown feed error.",
+            message,
           },
         };
       }
@@ -79,14 +111,20 @@ async function refreshFeeds(): Promise<NewsFeedData> {
     return bTime - aTime;
   });
 
+  logger.info(
+    { count: articles.length, failedSources: failures.length },
+    `[RSS] Total articles: ${articles.length}`,
+  );
   return { articles, failures };
 }
 
 // Requests share a short server-side cache and one in-flight refresh. A
 // partially failed refresh is retried sooner; one unavailable publisher never
 // blocks results from the rest.
-export async function getNewsFeedData(): Promise<NewsFeedData> {
-  if (cachedNews && cachedNews.expiresAt > Date.now()) {
+export async function getNewsFeedData(
+  forceRefresh = false,
+): Promise<NewsFeedData> {
+  if (!forceRefresh && cachedNews && cachedNews.expiresAt > Date.now()) {
     return cachedNews.data;
   }
   if (pendingRefresh) return pendingRefresh;

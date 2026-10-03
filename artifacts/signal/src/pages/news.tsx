@@ -1,6 +1,13 @@
+import { useState } from 'react';
 import { Link, useLocation, useParams } from 'wouter';
-import { Bookmark, BookmarkCheck, ChevronLeft, ExternalLink } from 'lucide-react';
-import { useGetNews, useGetNewsById } from '@workspace/api-client-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { Bookmark, BookmarkCheck, ChevronLeft, ExternalLink, RefreshCw } from 'lucide-react';
+import {
+  getGetNewsQueryKey,
+  getNews,
+  useGetNews,
+  useGetNewsById,
+} from '@workspace/api-client-react';
 import {
   CoverageBar,
   EmptyState,
@@ -28,10 +35,30 @@ export function NewsPage({ saved, toggle }: NewsActions) {
   const params = useParams<{ category?: string }>();
   const selectedCategory = categories.find((item) => item.slug === params.category);
   const tabs = [{ slug: '', label: 'All' }, ...categories];
-  const { data, isLoading, isError } = useGetNews(
-    selectedCategory ? { category: selectedCategory.slug } : undefined,
-  );
+  const newsParams = selectedCategory ? { category: selectedCategory.slug } : undefined;
+  const queryClient = useQueryClient();
+  const { data, isLoading, isError } = useGetNews(newsParams);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshStatus, setRefreshStatus] = useState<'updated' | 'error' | null>(null);
   const articles = data?.articles ?? [];
+
+  const refreshNews = async () => {
+    if (isRefreshing) return;
+
+    setIsRefreshing(true);
+    setRefreshStatus(null);
+    try {
+      const refreshedData = await getNews(newsParams, {
+        headers: { 'cache-control': 'no-cache' },
+      });
+      queryClient.setQueryData(getGetNewsQueryKey(newsParams), refreshedData);
+      setRefreshStatus('updated');
+    } catch {
+      setRefreshStatus('error');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   return (
     <>
@@ -40,26 +67,50 @@ export function NewsPage({ saved, toggle }: NewsActions) {
         title="News"
         description="Read reports from public news feeds, with each article linked to its publisher."
       />
-      <div className="mb-7 flex flex-wrap gap-2" role="tablist" aria-label="News categories">
-        {tabs.map((tab) => {
-          const active = (selectedCategory?.label ?? 'All') === tab.label;
-          return (
-            <Link
-              key={tab.label}
-              href={tab.slug ? `/news/category/${tab.slug}` : '/news'}
-              role="tab"
-              aria-selected={active}
-              className={`rounded-[2px] border px-3 py-1.5 text-[11px] ${
-                active
-                  ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-border text-muted-foreground hover:text-foreground'
-              }`}
-              data-testid={`filter-news-${tab.label.toLowerCase().replaceAll(' ', '-')}`}
-            >
-              {tab.label}
-            </Link>
-          );
-        })}
+      <div className="mb-7 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-2" role="tablist" aria-label="News categories">
+          {tabs.map((tab) => {
+            const active = (selectedCategory?.label ?? 'All') === tab.label;
+            return (
+              <Link
+                key={tab.label}
+                href={tab.slug ? `/news/category/${tab.slug}` : '/news'}
+                role="tab"
+                aria-selected={active}
+                className={`rounded-[2px] border px-3 py-1.5 text-[11px] ${
+                  active
+                    ? 'border-primary bg-primary text-primary-foreground'
+                    : 'border-border text-muted-foreground hover:text-foreground'
+                }`}
+                data-testid={`filter-news-${tab.label.toLowerCase().replaceAll(' ', '-')}`}
+              >
+                {tab.label}
+              </Link>
+            );
+          })}
+        </div>
+        <div className="flex min-h-8 items-center gap-2">
+          {refreshStatus === 'updated' ? (
+            <span className="text-[10px] text-muted-foreground" role="status">
+              Updated just now
+            </span>
+          ) : null}
+          {refreshStatus === 'error' ? (
+            <span className="text-[10px] text-muted-foreground" role="alert">
+              Refresh failed. Current articles are unchanged.
+            </span>
+          ) : null}
+          <button
+            type="button"
+            onClick={refreshNews}
+            disabled={isRefreshing}
+            className="inline-flex min-w-[104px] items-center justify-center gap-1.5 border border-border px-3 py-1.5 text-[11px] text-muted-foreground hover:border-primary hover:text-foreground disabled:cursor-wait disabled:opacity-60"
+            aria-label="Refresh news"
+          >
+            <RefreshCw size={13} className={isRefreshing ? 'animate-spin' : ''} />
+            {isRefreshing ? 'Refreshing' : 'Refresh'}
+          </button>
+        </div>
       </div>
 
       {data?.failedSourceCount ? (

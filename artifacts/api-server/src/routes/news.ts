@@ -13,13 +13,18 @@ const router: IRouter = Router();
 // These endpoints are the browser's only interface to news feeds: feed URLs,
 // failures, and source-specific XML formats stay on the server.
 router.get("/news", async (req, res): Promise<void> => {
+  const forceRefresh = req
+    .get("cache-control")
+    ?.split(",")
+    .some((directive) => directive.trim().toLowerCase() === "no-cache") ?? false;
+  req.log.info({ forceRefresh }, "[RSS] API request: GET /api/news");
   const params = GetNewsQueryParams.safeParse(req.query);
   if (!params.success) {
     res.status(400).json({ error: "Category must be a supported news category." });
     return;
   }
 
-  const result = await getNewsFeedData();
+  const result = await getNewsFeedData(forceRefresh);
   const category = params.data.category;
   const articles = category
     ? result.articles.filter((article) => article.category === category)
