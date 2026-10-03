@@ -7,6 +7,9 @@
  */
 
 export * from './apiError';
+export * from './briefingResponse';
+export * from './briefingSource';
+export * from './briefingStory';
 export * from './coverageSegment';
 export * from './coverageSegmentPerspective';
 export * from './coverageSummary';

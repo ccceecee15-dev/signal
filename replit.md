@@ -7,6 +7,8 @@ A personal information dashboard for following selected news and video sources w
 - `artifacts/signal: web` — run the Signal preview workflow
 - `pnpm --filter @workspace/signal run typecheck` — typecheck Signal
 - `pnpm run typecheck` — typecheck the full workspace
+- Set server-side `AI_API_KEY` to enable manual briefing generation. `AI_API_URL` and `AI_MODEL` optionally configure an OpenAI-compatible chat-completions provider; defaults are the OpenAI endpoint and `gpt-4o-mini`.
+- `GET /api/briefing` reads the last generated in-memory briefing; `POST /api/briefing/refresh` refreshes RSS and generates a new one. Briefings reset when the API process restarts.
 
 ## Stack
 

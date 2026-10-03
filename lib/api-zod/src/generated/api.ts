@@ -107,3 +107,117 @@ export const GetNewsByIdResponse = zod.object({
 })
 
 
+/**
+ * Returns the last manually generated briefing without refreshing RSS feeds or generating new summaries.
+ * @summary Get the latest generated briefing
+ */
+export const getBriefingResponseTopStoriesItemSignalScoreMin = 0;
+export const getBriefingResponseTopStoriesItemSignalScoreMax = 100;
+
+
+export const getBriefingResponseAlsoHappeningItemSignalScoreMin = 0;
+export const getBriefingResponseAlsoHappeningItemSignalScoreMax = 100;
+
+
+
+
+export const GetBriefingResponse = zod.object({
+  "generatedAt": zod.coerce.date().nullable(),
+  "topStories": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "whyItMatters": zod.string(),
+  "category": zod.enum(['international', 'india', 'united-states', 'technology']),
+  "signalScore": zod.number().min(getBriefingResponseTopStoriesItemSignalScoreMin).max(getBriefingResponseTopStoriesItemSignalScoreMax).describe('Relative editorial ordering signal, not an objective measure of importance.'),
+  "articleIds": zod.array(zod.string()),
+  "sourceCount": zod.number().int().min(1),
+  "sources": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "source": zod.string(),
+  "url": zod.string().url(),
+  "publishedAt": zod.coerce.date().nullable()
+})),
+  "firstPublishedAt": zod.coerce.date().nullable(),
+  "updatedAt": zod.coerce.date()
+})),
+  "alsoHappening": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "whyItMatters": zod.string(),
+  "category": zod.enum(['international', 'india', 'united-states', 'technology']),
+  "signalScore": zod.number().min(getBriefingResponseAlsoHappeningItemSignalScoreMin).max(getBriefingResponseAlsoHappeningItemSignalScoreMax).describe('Relative editorial ordering signal, not an objective measure of importance.'),
+  "articleIds": zod.array(zod.string()),
+  "sourceCount": zod.number().int().min(1),
+  "sources": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "source": zod.string(),
+  "url": zod.string().url(),
+  "publishedAt": zod.coerce.date().nullable()
+})),
+  "firstPublishedAt": zod.coerce.date().nullable(),
+  "updatedAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * Refreshes configured RSS feeds, clusters and ranks articles, then generates concise summaries.
+ * @summary Generate a fresh briefing
+ */
+export const refreshBriefingResponseTopStoriesItemSignalScoreMin = 0;
+export const refreshBriefingResponseTopStoriesItemSignalScoreMax = 100;
+
+
+export const refreshBriefingResponseAlsoHappeningItemSignalScoreMin = 0;
+export const refreshBriefingResponseAlsoHappeningItemSignalScoreMax = 100;
+
+
+
+
+export const RefreshBriefingResponse = zod.object({
+  "generatedAt": zod.coerce.date().nullable(),
+  "topStories": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "whyItMatters": zod.string(),
+  "category": zod.enum(['international', 'india', 'united-states', 'technology']),
+  "signalScore": zod.number().min(refreshBriefingResponseTopStoriesItemSignalScoreMin).max(refreshBriefingResponseTopStoriesItemSignalScoreMax).describe('Relative editorial ordering signal, not an objective measure of importance.'),
+  "articleIds": zod.array(zod.string()),
+  "sourceCount": zod.number().int().min(1),
+  "sources": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "source": zod.string(),
+  "url": zod.string().url(),
+  "publishedAt": zod.coerce.date().nullable()
+})),
+  "firstPublishedAt": zod.coerce.date().nullable(),
+  "updatedAt": zod.coerce.date()
+})),
+  "alsoHappening": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "whyItMatters": zod.string(),
+  "category": zod.enum(['international', 'india', 'united-states', 'technology']),
+  "signalScore": zod.number().min(refreshBriefingResponseAlsoHappeningItemSignalScoreMin).max(refreshBriefingResponseAlsoHappeningItemSignalScoreMax).describe('Relative editorial ordering signal, not an objective measure of importance.'),
+  "articleIds": zod.array(zod.string()),
+  "sourceCount": zod.number().int().min(1),
+  "sources": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "source": zod.string(),
+  "url": zod.string().url(),
+  "publishedAt": zod.coerce.date().nullable()
+})),
+  "firstPublishedAt": zod.coerce.date().nullable(),
+  "updatedAt": zod.coerce.date()
+}))
+})
+
+

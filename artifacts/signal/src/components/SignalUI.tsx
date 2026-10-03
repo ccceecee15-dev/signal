@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'wouter';
-import { Bookmark, BookmarkCheck, ChevronRight, CircleHelp, Compass, Home, Library, Play, Search, Settings, Video as VideoIcon, X } from 'lucide-react';
+import { Bookmark, BookmarkCheck, ChevronRight, CircleHelp, Compass, Home, Library, Newspaper, Play, Search, Settings, Video as VideoIcon, X } from 'lucide-react';
 import { formatDistanceToNowStrict } from 'date-fns';
 import type { NewsArticle, NewsCategory } from '@workspace/api-client-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -22,6 +22,7 @@ export function Shell({children,savedCount}:{children:ReactNode;savedCount:numbe
   const isDetail = location.startsWith('/news/')||location.startsWith('/videos/');
   const navItems = [
     { href:'/', label:'Home', icon:Home },
+    { href:'/briefing', label:'Briefing', icon:Newspaper },
     { href:'/news', label:'News', icon:Compass },
     { href:'/videos', label:'Videos', icon:VideoIcon },
     { href:'/channels', label:'Channels', icon:Library },
@@ -36,6 +37,7 @@ export function Shell({children,savedCount}:{children:ReactNode;savedCount:numbe
         <p className="mb-2 mt-7 px-3 text-[10px] font-semibold uppercase tracking-[.16em] text-muted-foreground">Watch</p>
         {[{href:'/videos',label:'Videos',icon:VideoIcon},{href:'/channels',label:'Channels',icon:Library}].map(item=>{const Icon=item.icon;const active=activeFor(item.href);return <Link key={item.href} href={item.href} data-testid={`nav-${item.label.toLowerCase()}`} className={`sidebar-link flex items-center gap-3 rounded-[3px] px-3 py-[10px] text-[13px] ${active?'bg-[hsl(var(--sidebar-accent))] font-semibold text-foreground':'text-muted-foreground hover:text-foreground'}`}><Icon size={16} strokeWidth={active?2:1.7}/>{item.label}</Link>})}
         <p className="mb-2 mt-7 px-3 text-[10px] font-semibold uppercase tracking-[.16em] text-muted-foreground">Read</p>
+        <Link href="/briefing" data-testid="nav-briefing" className={`sidebar-link flex items-center gap-3 rounded-[3px] px-3 py-[10px] text-[13px] ${location==='/briefing'?'bg-[hsl(var(--sidebar-accent))] font-semibold text-foreground':'text-muted-foreground hover:text-foreground'}`}><Newspaper size={16} strokeWidth={1.7}/>Your Briefing</Link>
         <Link href="/news" data-testid="nav-news" className={`sidebar-link flex items-center gap-3 rounded-[3px] px-3 py-[10px] text-[13px] ${location.startsWith('/news')?'bg-[hsl(var(--sidebar-accent))] font-semibold text-foreground':'text-muted-foreground hover:text-foreground'}`}><Compass size={16} strokeWidth={1.7}/>News</Link>
         <div className="ml-[27px] space-y-0.5 border-l border-border pl-3">{newsCategories.map(category=>{const href=`/news/category/${category.slug}`;const active=location===href;return <Link key={category.slug} href={href} data-testid={`nav-category-${category.slug}`} className={`block rounded-[3px] px-2.5 py-2 text-[12px] ${active?'font-medium text-foreground':'text-muted-foreground hover:text-foreground'}`}>{category.label}</Link>})}</div>
         <Link href="/saved" data-testid="nav-saved" className={`sidebar-link mt-5 flex items-center gap-3 rounded-[3px] px-3 py-[10px] text-[13px] ${location==='/saved'?'bg-[hsl(var(--sidebar-accent))] font-semibold text-foreground':'text-muted-foreground hover:text-foreground'}`}><Bookmark size={16} strokeWidth={1.7}/>Saved<span className="ml-auto text-[11px] tabular-nums">{savedCount}</span></Link>

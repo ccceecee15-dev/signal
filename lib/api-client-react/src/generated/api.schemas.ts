@@ -81,6 +81,43 @@ export interface NewsListResponse {
   failedSourceCount: number;
 }
 
+export interface BriefingSource {
+  id: string;
+  title: string;
+  source: string;
+  url: string;
+  /** @nullable */
+  publishedAt: string | null;
+}
+
+export interface BriefingStory {
+  id: string;
+  title: string;
+  summary: string;
+  whyItMatters: string;
+  category: NewsCategory;
+  /**
+     * Relative editorial ordering signal, not an objective measure of importance.
+     * @minimum 0
+     * @maximum 100
+     */
+  signalScore: number;
+  articleIds: string[];
+  /** @minimum 1 */
+  sourceCount: number;
+  sources: BriefingSource[];
+  /** @nullable */
+  firstPublishedAt: string | null;
+  updatedAt: string;
+}
+
+export interface BriefingResponse {
+  /** @nullable */
+  generatedAt: string | null;
+  topStories: BriefingStory[];
+  alsoHappening: BriefingStory[];
+}
+
 export interface ApiError {
   error: string;
 }

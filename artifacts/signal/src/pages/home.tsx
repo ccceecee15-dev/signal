@@ -23,33 +23,33 @@ export function HomePage({
 }: HomeProps) {
   const { data, isLoading, isError } = useGetNews();
   const articles = data?.articles ?? [];
-  const briefing = articles.slice(0, 4);
+  const latestArticles = articles.slice(0, 4);
   const recentVideos = videos.slice(0, 4);
 
   return (
     <>
       <div className="mb-10 flex items-end justify-between border-b border-border pb-8">
         <div>
-          <Eyebrow>Your briefing · public RSS news</Eyebrow>
+          <Eyebrow>Recent coverage · public RSS news</Eyebrow>
           <h1 className="serif mt-3 text-[44px] leading-[1.03] md:text-[56px]" data-testid="heading-briefing">
             Good evening.
           </h1>
           <p className="mt-4 max-w-[450px] text-[13px] leading-6 text-muted-foreground">
-            Here’s what is worth your attention today.
+            Recent reporting from your selected sources.
           </p>
         </div>
         <div className="hidden text-right sm:block">
           <div className="serif text-[38px] text-foreground/80">
-            {isLoading ? '··' : String(briefing.length).padStart(2, '0')}
+            {isLoading ? '··' : String(latestArticles.length).padStart(2, '0')}
           </div>
-          <div className="text-[10px] uppercase tracking-[.13em] text-muted-foreground">stories to start</div>
+          <div className="text-[10px] uppercase tracking-[.13em] text-muted-foreground">recent articles</div>
         </div>
       </div>
 
       <section className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_310px]">
         <div>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-[11px] font-semibold uppercase tracking-[.14em]">Your briefing</h2>
+            <h2 className="text-[11px] font-semibold uppercase tracking-[.14em]">Latest news</h2>
             <span className="text-[11px] text-muted-foreground">Latest from configured feeds</span>
           </div>
           <div className="border-t border-border">
@@ -60,8 +60,8 @@ export function HomePage({
                 text="The news service is temporarily unavailable. Please try again shortly."
               />
             ) : null}
-            {!isLoading && !isError && briefing.length > 0
-              ? briefing.map((article, index) => (
+            {!isLoading && !isError && latestArticles.length > 0
+              ? latestArticles.map((article, index) => (
                   <NewsRow
                     key={article.id}
                     article={article}
@@ -71,7 +71,7 @@ export function HomePage({
                   />
                 ))
               : null}
-            {!isLoading && !isError && briefing.length === 0 ? (
+            {!isLoading && !isError && latestArticles.length === 0 ? (
               <EmptyState
                 title={data?.failedSourceCount ? 'News sources are temporarily unavailable' : 'No recent news'}
                 text="Signal will show articles here as soon as its configured feeds return recent stories."
@@ -83,9 +83,14 @@ export function HomePage({
               Some news feeds could not update; available articles are still shown.
             </p>
           ) : null}
-          <Link href="/news" className="mt-5 inline-flex items-center gap-2 text-[12px] font-medium text-primary hover:underline" data-testid="link-all-news">
-            Explore all stories <ChevronRight size={14} />
-          </Link>
+          <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-[12px] font-medium">
+            <Link href="/briefing" className="inline-flex items-center gap-2 text-primary hover:underline" data-testid="link-your-briefing">
+              Your Briefing <ChevronRight size={14} />
+            </Link>
+            <Link href="/news" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary hover:underline" data-testid="link-all-news">
+              Explore all stories <ChevronRight size={14} />
+            </Link>
+          </div>
         </div>
 
         <aside className="border-t border-border pt-4 lg:border-t-0 lg:border-l lg:pl-7">

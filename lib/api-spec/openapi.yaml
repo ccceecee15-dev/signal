@@ -12,6 +12,8 @@ tags:
     description: Health operations
   - name: news
     description: RSS-backed news operations
+  - name: briefing
+    description: Explicitly generated RSS story briefings
 paths:
   /healthz:
     get:
@@ -71,6 +73,38 @@ paths:
                 $ref: "#/components/schemas/NewsArticle"
         "404":
           description: Article not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /briefing:
+    get:
+      operationId: getBriefing
+      tags: [briefing]
+      summary: Get the latest generated briefing
+      description: Returns the last manually generated briefing without refreshing RSS feeds or generating new summaries.
+      responses:
+        "200":
+          description: Latest generated briefing, or an empty response before the first refresh
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BriefingResponse"
+  /briefing/refresh:
+    post:
+      operationId: refreshBriefing
+      tags: [briefing]
+      summary: Generate a fresh briefing
+      description: Refreshes configured RSS feeds, clusters and ranks articles, then generates concise summaries.
+      responses:
+        "200":
+          description: Newly generated briefing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BriefingResponse"
+        "503":
+          description: Briefing generation is unavailable
           content:
             application/json:
               schema:
@@ -177,6 +211,84 @@ components:
           type: integer
           minimum: 0
       required: [articles, failedSourceCount]
+    BriefingSource:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        source:
+          type: string
+        url:
+          type: string
+          format: uri
+        publishedAt:
+          type: [string, "null"]
+          format: date-time
+      required: [id, title, source, url, publishedAt]
+    BriefingStory:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        summary:
+          type: string
+        whyItMatters:
+          type: string
+        category:
+          $ref: "#/components/schemas/NewsCategory"
+        signalScore:
+          type: number
+          minimum: 0
+          maximum: 100
+          description: Relative editorial ordering signal, not an objective measure of importance.
+        articleIds:
+          type: array
+          items:
+            type: string
+        sourceCount:
+          type: integer
+          minimum: 1
+        sources:
+          type: array
+          items:
+            $ref: "#/components/schemas/BriefingSource"
+        firstPublishedAt:
+          type: [string, "null"]
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - summary
+        - whyItMatters
+        - category
+        - signalScore
+        - articleIds
+        - sourceCount
+        - sources
+        - firstPublishedAt
+        - updatedAt
+    BriefingResponse:
+      type: object
+      properties:
+        generatedAt:
+          type: [string, "null"]
+          format: date-time
+        topStories:
+          type: array
+          items:
+            $ref: "#/components/schemas/BriefingStory"
+        alsoHappening:
+          type: array
+          items:
+            $ref: "#/components/schemas/BriefingStory"
+      required: [generatedAt, topStories, alsoHappening]
     ApiError:
       type: object
       properties:

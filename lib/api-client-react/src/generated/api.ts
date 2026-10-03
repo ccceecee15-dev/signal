@@ -6,17 +6,22 @@
  * OpenAPI spec version: 0.1.0
  */
 import {
+  useMutation,
   useQuery
 } from '@tanstack/react-query';
 import type {
+  MutationFunction,
   QueryFunction,
   QueryKey,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult
 } from '@tanstack/react-query';
 
 import type {
   ApiError,
+  BriefingResponse,
   GetNewsParams,
   HealthStatus,
   NewsArticle,
@@ -289,4 +294,157 @@ export function useGetNewsById<TData = Awaited<ReturnType<typeof getNewsById>>, 
 
 
 
+
+export const getGetBriefingUrl = () => {
+
+
+
+
+  return `/api/briefing`
+}
+
+/**
+ * Returns the last manually generated briefing without refreshing RSS feeds or generating new summaries.
+ * @summary Get the latest generated briefing
+ */
+export const getBriefing = async ( options?: Parameters<typeof customFetch>[1]): Promise<BriefingResponse> => {
+
+  return customFetch<BriefingResponse>(getGetBriefingUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBriefingQueryKey = () => {
+    return [
+    `/api/briefing`
+    ] as const;
+    }
+
+
+export const getGetBriefingQueryOptions = <TData = Awaited<ReturnType<typeof getBriefing>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBriefing>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBriefingQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBriefing>>> = ({ signal }) => getBriefing({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBriefing>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetBriefingQueryResult = NonNullable<Awaited<ReturnType<typeof getBriefing>>>
+export type GetBriefingQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get the latest generated briefing
+ */
+
+export function useGetBriefing<TData = Awaited<ReturnType<typeof getBriefing>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBriefing>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetBriefingQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getRefreshBriefingUrl = () => {
+
+
+
+
+  return `/api/briefing/refresh`
+}
+
+/**
+ * Refreshes configured RSS feeds, clusters and ranks articles, then generates concise summaries.
+ * @summary Generate a fresh briefing
+ */
+export const refreshBriefing = async ( options?: Parameters<typeof customFetch>[1]): Promise<BriefingResponse> => {
+
+  return customFetch<BriefingResponse>(getRefreshBriefingUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getRefreshBriefingMutationKey = () => ['refreshBriefing'] as const;
+
+export const getRefreshBriefingMutationOptions = <TError = ErrorType<ApiError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refreshBriefing>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof refreshBriefing>>, TError,void, TContext> => {
+
+const mutationKey = getRefreshBriefingMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof refreshBriefing>>, void> = () => {
+
+
+          return  refreshBriefing(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RefreshBriefingMutationResult = NonNullable<Awaited<ReturnType<typeof refreshBriefing>>>
+
+    export type RefreshBriefingMutationError = ErrorType<ApiError>
+
+
+    /**
+ * @summary Generate a fresh briefing
+ */
+export const useRefreshBriefing = <TError = ErrorType<ApiError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refreshBriefing>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof refreshBriefing>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getRefreshBriefingMutationOptions(options));
+    }
 
